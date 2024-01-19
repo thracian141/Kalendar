@@ -16,11 +16,18 @@ var jwtIssuer = builder.Configuration.GetValue<string>("JwtIssuer");
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+
+builder.Services.AddIdentity<ApplicationUser,IdentityRole<int>>(options => {
+	options.User.AllowedUserNameCharacters+=" àáâãäå¸æçèéêëìíîïğñòóôõö÷øùúûüışÿÀÁÂÃÄÅ¨ÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜİŞß";
+}).AddDefaultTokenProviders().AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddScoped<IDbInitializer,DbInitializer>();
+
 builder.Services.AddCors(options => {
     options.AddPolicy(name: SvelteOrigins,
         policy => {
             policy.WithOrigins("http://localhost:5555").AllowAnyHeader().AllowCredentials().AllowAnyMethod();
-        });
+            policy.WithOrigins("localhost:5555").AllowAnyHeader().AllowCredentials().AllowAnyMethod();
+		});
 });
 
 builder.Services.AddAuthentication(options => {
@@ -42,16 +49,13 @@ builder.Services.AddAuthentication(options => {
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<ApplicationUser>().AddDefaultTokenProviders().AddRoles<IdentityRole<int>>().AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+builder.Services.AddRazorPages();
+
 
 var app = builder.Build();
 
-var scope = app.Services.CreateScope();
-var service = scope.ServiceProvider.GetService<IDbInitializer>();
-service?.Initialize();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -67,6 +71,7 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+//DataSeeding();
 
 app.UseRouting();
 
@@ -79,4 +84,12 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
+
 app.Run();
+
+void DataSeeding() {
+	using (var scope = app.Services.CreateScope()) {
+		var DbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+		DbInitializer.Initialize();
+	}
+}

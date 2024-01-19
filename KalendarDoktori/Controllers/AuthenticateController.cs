@@ -27,16 +27,19 @@ namespace KalendarDoktori.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterInput model)
         {
+            _logger.LogInformation(model.UserName + model.Email + model.IsDoctor);
             var user = new ApplicationUser
             {
-                Id = 0,
                 UserName = model.UserName,
                 Email = model.Email,
+                EmailConfirmed = true
             };
-            var result = await _userManager.CreateAsync(user, model.Password);
+			_logger.LogInformation(user.UserName+user.Email);
+
+			var result = await _userManager.CreateAsync(user, model.Password);
 
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+                return NotFound(result.Errors);
 
             if (model.IsDoctor)
                 await _userManager.AddToRoleAsync(user, ApplicationRoles.Doctor);
@@ -91,5 +94,31 @@ namespace KalendarDoktori.Controllers
 
             return Ok();
         }
+
+        [HttpGet("username")]
+        public async Task<IActionResult> Username() {
+			_logger.LogInformation("_userManager: {0}",_userManager);
+			_logger.LogInformation("User: {0}",User);
+
+			_logger.LogInformation("Username REQUESTED");
+			var user = await _userManager.GetUserAsync(User);
+            _logger.LogInformation("USERNAME: " + user.UserName);
+			if (user==null) {
+				return BadRequest("User not found");
+			}
+
+			return Ok(user.UserName);
+		}
+
+        [HttpGet("id")]
+        public async Task<IActionResult> Id() {
+            var user = await _userManager.GetUserAsync(User);
+
+			if (user==null) {
+				return BadRequest("User not found");
+			}
+
+			return Ok(user.Id);
+		}
     }
 }

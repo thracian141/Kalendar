@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KalendarDoktori")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7d3e248a047053cbe0c080cda0949184f09c392e")]
 [assembly: System.Reflection.AssemblyProductAttribute("KalendarDoktori")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KalendarDoktori")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

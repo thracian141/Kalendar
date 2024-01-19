@@ -22,9 +22,9 @@ namespace KalendarDoktori.Services
         {
             var claims = new List<Claim>
             {
-                new Claim("Id", user.Id.ToString()),
-                new Claim("Email", user.Email),
-                new Claim("UserName", user.UserName)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, user.UserName)
             };
 
             var userRoles = await _userManager.GetRolesAsync(user);

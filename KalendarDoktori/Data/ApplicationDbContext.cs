@@ -10,17 +10,23 @@ namespace KalendarDoktori.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        protected override void OnModelCreating(ModelBuilder builder)
-        {
-            base.OnModelCreating(builder);
+		protected override void OnModelCreating(ModelBuilder modelBuilder) {
+			base.OnModelCreating(modelBuilder);
 
-            builder.Entity<IdentityRole<int>>().HasData(
-                new IdentityRole<int> { Id = 1, Name = ApplicationRoles.Admin, NormalizedName = ApplicationRoles.Admin.ToUpper() },
-                new IdentityRole<int> { Id = 2, Name = ApplicationRoles.Doctor, NormalizedName = ApplicationRoles.Doctor.ToUpper() },
-                new IdentityRole<int> { Id = 3, Name = ApplicationRoles.User, NormalizedName = ApplicationRoles.User.ToUpper() }
-            );
-        }
+			modelBuilder.Entity<Appointment>()
+				.HasOne(a => a.Patient)
+				.WithMany()
+				.HasForeignKey(a => a.PatientId)
+				.OnDelete(DeleteBehavior.NoAction); // Prevent cascade delete
 
-        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+			modelBuilder.Entity<Appointment>()
+				.HasOne(a => a.Doctor)
+				.WithMany()
+				.HasForeignKey(a => a.DoctorId)
+				.OnDelete(DeleteBehavior.Cascade); // Prevent cascade delete
+		}
+
+		public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public DbSet<Appointment> Appointments { get; set; }
     }
 }

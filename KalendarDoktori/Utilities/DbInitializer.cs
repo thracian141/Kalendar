@@ -8,36 +8,36 @@ namespace KalendarDoktori.Utilities
 {
     public class DbInitializer : IDbInitializer
     {
-        private readonly ApplicationDbContext _db;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+		private UserManager<ApplicationUser> _userManager;
+		private RoleManager<IdentityRole<int>> _roleManager;
+		private ApplicationDbContext _db;
 
-        public DbInitializer(ApplicationDbContext db, UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager)
+		public DbInitializer(UserManager<ApplicationUser> userManager,RoleManager<IdentityRole<int>> roleManager,ApplicationDbContext context) {
+			_userManager=userManager;
+			_roleManager=roleManager;
+			_db=context;
+		}
+
+		public void Initialize()
         {
-            _db = db;
-            _roleManager = roleManager;
-            _userManager = userManager;
-        }
+			if (!_roleManager.Roles.Any()) {
+				_roleManager.CreateAsync(new IdentityRole<int> { Name=ApplicationRoles.Admin}).GetAwaiter().GetResult();
+				_roleManager.CreateAsync(new IdentityRole<int> { Name=ApplicationRoles.Doctor }).GetAwaiter().GetResult();
+				_roleManager.CreateAsync(new IdentityRole<int> { Name=ApplicationRoles.User }).GetAwaiter().GetResult();
+			}
+			if (_roleManager.Roles.Any() && !_userManager.Users.Any()) {
+				var sysAdmin = new ApplicationUser {
+					UserName="sysadmin",
+					Email="admin@docalendar.com",
+					EmailConfirmed=true
+				};
 
-        public async void Initialize()
-        {
-            if (_db.Roles.Any(x => x.Name == ApplicationRoles.Admin)) return;
-
-            await _roleManager.CreateAsync(new IdentityRole(ApplicationRoles.Admin));
-            await _roleManager.CreateAsync(new IdentityRole(ApplicationRoles.Doctor));
-            await _roleManager.CreateAsync(new IdentityRole(ApplicationRoles.User));
-
-            await _userManager.CreateAsync(new ApplicationUser
-            {
-                UserName = "sysadmin",
-                Email = "admin@gmail.com",
-                EmailConfirmed = true
-
-            }, "Parola123?");
-
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == "admin@gmail.com");
-            await _userManager.AddToRoleAsync(user, ApplicationRoles.Admin);
-        }
+				var result = _userManager.CreateAsync(sysAdmin,"Parola123?").GetAwaiter().GetResult();
+			}
+			if (_userManager.Users.FirstOrDefaultAsync().GetAwaiter().GetResult().UserName == "sysadmin") {
+				var sysadmin = _db.Users.FirstOrDefault();
+				_userManager.AddToRoleAsync(sysadmin,ApplicationRoles.Admin).GetAwaiter().GetResult();
+			}
+		}
     }
 }
